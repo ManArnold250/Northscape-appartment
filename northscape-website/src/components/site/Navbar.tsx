@@ -83,11 +83,11 @@ export function Navbar() {
           solid ? "glass border-b border-border/60 py-3 shadow-soft" : "bg-transparent py-4 sm:py-5",
         )}
       >
-        <div className="container-x flex items-center justify-between gap-4 sm:gap-6">
-          <Link to="/" className="flex items-center gap-3 group focus-visible:outline-none">
+        <div className="container-x flex items-center justify-between gap-2 sm:gap-6">
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 group focus-visible:outline-none min-w-0">
             <span
               className={cn(
-                "inline-flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full border-2 shadow-lg transition-all overflow-hidden shrink-0 bg-[#FDF4E3]",
+                "inline-flex h-11 w-11 sm:h-16 sm:w-16 items-center justify-center rounded-full border-2 shadow-lg transition-all overflow-hidden shrink-0 bg-[#FDF4E3]",
                 solid ? "border-accent/60" : "border-white/80 ring-2 ring-white/30",
               )}
             >
@@ -95,7 +95,7 @@ export function Navbar() {
             </span>
             <span
               className={cn(
-                "font-display text-xl sm:text-2xl font-bold tracking-tight transition-colors",
+                "font-display text-base sm:text-2xl font-bold tracking-tight transition-colors truncate",
                 solid ? "text-foreground" : "text-white drop-shadow-md",
               )}
             >
@@ -103,7 +103,7 @@ export function Navbar() {
             </span>
           </Link>
 
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-4">
             <nav className="hidden md:flex items-center gap-6 lg:gap-8">
               {links.map((l) => (
                 <Link
@@ -180,12 +180,14 @@ export function Navbar() {
                 type="button"
                 onClick={() => setShowAuthModal(true)}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-all active:scale-95 shrink-0",
+                  "inline-flex items-center gap-1.5 rounded-full border size-9 sm:size-auto sm:px-3.5 sm:py-1.5 justify-center text-xs font-semibold transition-all active:scale-95 shrink-0",
                   solid ? "border-border text-foreground bg-background/80 hover:bg-secondary" : "border-white/60 text-white bg-black/20 hover:bg-white/20",
                 )}
+                aria-label="Sign In / Register"
+                title="Sign In / Register"
               >
                 <UserIcon className="size-3.5" />
-                <span>Sign In / Register</span>
+                <span className="hidden sm:inline">Sign In / Register</span>
               </button>
             )}
 
@@ -194,25 +196,25 @@ export function Navbar() {
               type="button"
               onClick={toggleTheme}
               className={cn(
-                "inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all active:scale-90 hover:opacity-90 shrink-0",
+                "inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border transition-all active:scale-90 hover:opacity-90 shrink-0",
                 solid ? "border-border text-foreground bg-background/80" : "border-white/50 text-white bg-black/20",
               )}
               aria-label="Toggle dark/light mode"
               title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
-              {isDark ? <Sun className="size-4.5 text-amber-400" /> : <Moon className="size-4.5" />}
+              {isDark ? <Sun className="size-4 sm:size-4.5 text-amber-400" /> : <Moon className="size-4 sm:size-4.5" />}
             </button>
 
             <button
               type="button"
               className={cn(
-                "md:hidden inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors min-h-[40px] min-w-[40px] active:scale-95",
+                "md:hidden inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border transition-colors min-h-[36px] min-w-[36px] active:scale-95",
                 solid ? "border-border text-foreground bg-background/50" : "border-white/50 text-white bg-black/20",
               )}
               onClick={() => setOpen((v) => !v)}
               aria-label="Toggle menu"
             >
-              {open ? <X className="size-5" /> : <Menu className="size-5" />}
+              {open ? <X className="size-4.5 sm:size-5" /> : <Menu className="size-4.5 sm:size-5" />}
             </button>
           </div>
         </div>

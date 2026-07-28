@@ -76,22 +76,22 @@
 }
 
 .dark {
-  --background: oklch(0.20 0.02 45);
+  --background: oklch(0.12 0.004 45);
   --foreground: oklch(0.96 0.012 82);
-  --card: oklch(0.24 0.025 45);
+  --card: oklch(0.16 0.006 45);
   --card-foreground: oklch(0.96 0.012 82);
-  --popover: oklch(0.24 0.025 45);
+  --popover: oklch(0.16 0.006 45);
   --popover-foreground: oklch(0.96 0.012 82);
   --primary: oklch(0.92 0.02 78);
-  --primary-foreground: oklch(0.22 0.03 45);
-  --secondary: oklch(0.30 0.03 45);
+  --primary-foreground: oklch(0.14 0.005 45);
+  --secondary: oklch(0.20 0.008 45);
   --secondary-foreground: oklch(0.96 0.012 82);
-  --muted: oklch(0.28 0.025 45);
-  --muted-foreground: oklch(0.75 0.02 65);
+  --muted: oklch(0.18 0.006 45);
+  --muted-foreground: oklch(0.70 0.015 65);
   --accent: oklch(0.68 0.13 45);
-  --accent-foreground: oklch(0.20 0.02 45);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 15%);
+  --accent-foreground: oklch(0.12 0.004 45);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 13%);
   --ring: oklch(0.68 0.13 45);
 }
 
@@ -112,6 +112,16 @@
   h1, h2, h3, h4, .font-display {
     font-family: var(--font-display);
     letter-spacing: -0.01em;
+  }
+
+  /* Light mode: photos were reading as blown-out/overexposed against the
+     bright cream background. A gentle brightness/contrast pull brings back
+     detail in highlights without visibly dulling the images. */
+  img {
+    filter: brightness(0.96) contrast(1.05) saturate(1.04);
+  }
+  .dark img {
+    filter: none;
   }
 }
 
