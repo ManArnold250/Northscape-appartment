@@ -1,0 +1,147 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-cream: var(--cream);
+  --color-sand: var(--sand);
+  --color-wood: var(--wood);
+  --color-copper: var(--copper);
+  --font-display: "Playfair Display", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --radius: 0.875rem;
+
+  /* NorthScape palette — warm cream, wood, deep chocolate */
+  --background: oklch(0.972 0.014 82);         /* warm cream */
+  --foreground: oklch(0.24 0.035 45);          /* deep chocolate */
+
+  --card: oklch(0.985 0.010 82);
+  --card-foreground: oklch(0.24 0.035 45);
+  --popover: oklch(0.985 0.010 82);
+  --popover-foreground: oklch(0.24 0.035 45);
+
+  --primary: oklch(0.32 0.045 45);             /* dark brown */
+  --primary-foreground: oklch(0.972 0.014 82);
+
+  --secondary: oklch(0.92 0.022 78);           /* soft beige */
+  --secondary-foreground: oklch(0.28 0.04 45);
+
+  --muted: oklch(0.94 0.015 82);
+  --muted-foreground: oklch(0.48 0.028 55);
+
+  --accent: oklch(0.62 0.13 45);               /* copper wood accent */
+  --accent-foreground: oklch(0.98 0.010 82);
+
+  --destructive: oklch(0.58 0.19 27);
+  --destructive-foreground: oklch(0.98 0.01 82);
+
+  --border: oklch(0.88 0.02 75);
+  --input: oklch(0.88 0.02 75);
+  --ring: oklch(0.55 0.09 50);
+
+  --cream: oklch(0.972 0.014 82);
+  --sand: oklch(0.88 0.035 75);
+  --wood: oklch(0.48 0.075 50);
+  --copper: oklch(0.62 0.13 45);
+}
+
+.dark {
+  --background: oklch(0.20 0.02 45);
+  --foreground: oklch(0.96 0.012 82);
+  --card: oklch(0.24 0.025 45);
+  --card-foreground: oklch(0.96 0.012 82);
+  --popover: oklch(0.24 0.025 45);
+  --popover-foreground: oklch(0.96 0.012 82);
+  --primary: oklch(0.92 0.02 78);
+  --primary-foreground: oklch(0.22 0.03 45);
+  --secondary: oklch(0.30 0.03 45);
+  --secondary-foreground: oklch(0.96 0.012 82);
+  --muted: oklch(0.28 0.025 45);
+  --muted-foreground: oklch(0.75 0.02 65);
+  --accent: oklch(0.68 0.13 45);
+  --accent-foreground: oklch(0.20 0.02 45);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.68 0.13 45);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+}
+
+@utility container-x {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  max-width: 80rem;
+  @media (min-width: 768px) {
+    padding-inline: 2rem;
+  }
+}
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+@utility glass {
+  background: color-mix(in oklab, var(--background) 65%, transparent);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+}
+
+@utility shadow-soft {
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--foreground) 6%, transparent),
+    0 20px 40px -18px color-mix(in oklab, var(--foreground) 22%, transparent);
+}
+
+@utility ring-focus {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 40%, transparent);
+}
