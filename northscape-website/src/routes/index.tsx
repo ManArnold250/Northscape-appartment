@@ -127,7 +127,7 @@ function Home() {
           </motion.div>
 
           {/* slideshow dots */}
-          <div className="absolute bottom-16 sm:bottom-16 left-1/2 -translate-x-1/2 flex gap-2">
+          <div className="mt-8 sm:mt-10 flex items-center justify-center gap-2">
             {HERO.map((_, i) => (
               <button
                 key={i}
