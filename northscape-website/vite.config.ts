@@ -21,4 +21,7 @@ export default defineConfig({
   ssr: {
     external: ["mysql2", "mysql2/promise"],
   },
+  preview: {
+    allowedHosts: true,
+  },
 });
