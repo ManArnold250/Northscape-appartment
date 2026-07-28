@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Menu, X, Sun, Moon, User as UserIcon, LogOut, ShieldCheck } from "lucide-react";
+import { Menu, X, User as UserIcon, LogOut, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { img } from "@/lib/images";
 import { cn } from "@/lib/utils";
@@ -30,7 +30,6 @@ export function Navbar() {
   const { lang, setLang, t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [isDark, setIsDark] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(() => getStoredUser());
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -51,21 +50,6 @@ export function Navbar() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("northscape-theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const darkState = saved === "dark" || (!saved && prefersDark);
-    setIsDark(darkState);
-    document.documentElement.classList.toggle("dark", darkState);
-  }, []);
-
-  const toggleTheme = () => {
-    const next = !isDark;
-    setIsDark(next);
-    localStorage.setItem("northscape-theme", next ? "dark" : "light");
-    document.documentElement.classList.toggle("dark", next);
-  };
 
   useEffect(() => {
     setOpen(false);
@@ -192,19 +176,6 @@ export function Navbar() {
             )}
 
             {/* Theme Toggle Button (Sun / Moon) */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className={cn(
-                "inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border transition-all active:scale-90 hover:opacity-90 shrink-0",
-                solid ? "border-border text-foreground bg-background/80" : "border-white/50 text-white bg-black/20",
-              )}
-              aria-label="Toggle dark/light mode"
-              title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            >
-              {isDark ? <Sun className="size-4 sm:size-4.5 text-amber-400" /> : <Moon className="size-4 sm:size-4.5" />}
-            </button>
-
             <button
               type="button"
               className={cn(

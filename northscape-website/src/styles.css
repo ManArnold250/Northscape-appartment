@@ -41,33 +41,33 @@
 :root {
   --radius: 0.875rem;
 
-  /* NorthScape palette — warm cream, wood, deep chocolate */
-  --background: oklch(0.972 0.014 82);         /* warm cream */
-  --foreground: oklch(0.24 0.035 45);          /* deep chocolate */
+  /* NorthScape palette — single dark theme (black, wood, copper accent) */
+  --background: oklch(0.12 0.004 45);
+  --foreground: oklch(0.96 0.012 82);
 
-  --card: oklch(0.985 0.010 82);
-  --card-foreground: oklch(0.24 0.035 45);
-  --popover: oklch(0.985 0.010 82);
-  --popover-foreground: oklch(0.24 0.035 45);
+  --card: oklch(0.16 0.006 45);
+  --card-foreground: oklch(0.96 0.012 82);
+  --popover: oklch(0.16 0.006 45);
+  --popover-foreground: oklch(0.96 0.012 82);
 
-  --primary: oklch(0.32 0.045 45);             /* dark brown */
-  --primary-foreground: oklch(0.972 0.014 82);
+  --primary: oklch(0.92 0.02 78);
+  --primary-foreground: oklch(0.14 0.005 45);
 
-  --secondary: oklch(0.92 0.022 78);           /* soft beige */
-  --secondary-foreground: oklch(0.28 0.04 45);
+  --secondary: oklch(0.20 0.008 45);
+  --secondary-foreground: oklch(0.96 0.012 82);
 
-  --muted: oklch(0.94 0.015 82);
-  --muted-foreground: oklch(0.48 0.028 55);
+  --muted: oklch(0.18 0.006 45);
+  --muted-foreground: oklch(0.70 0.015 65);
 
-  --accent: oklch(0.62 0.13 45);               /* copper wood accent */
-  --accent-foreground: oklch(0.98 0.010 82);
+  --accent: oklch(0.68 0.13 45);               /* copper wood accent */
+  --accent-foreground: oklch(0.12 0.004 45);
 
   --destructive: oklch(0.58 0.19 27);
   --destructive-foreground: oklch(0.98 0.01 82);
 
-  --border: oklch(0.88 0.02 75);
-  --input: oklch(0.88 0.02 75);
-  --ring: oklch(0.55 0.09 50);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 13%);
+  --ring: oklch(0.68 0.13 45);
 
   --cream: oklch(0.972 0.014 82);
   --sand: oklch(0.88 0.035 75);
@@ -112,16 +112,6 @@
   h1, h2, h3, h4, .font-display {
     font-family: var(--font-display);
     letter-spacing: -0.01em;
-  }
-
-  /* Light mode: photos were reading as blown-out/overexposed against the
-     bright cream background. A gentle brightness/contrast pull brings back
-     detail in highlights without visibly dulling the images. */
-  img {
-    filter: brightness(0.96) contrast(1.05) saturate(1.04);
-  }
-  .dark img {
-    filter: none;
   }
 }
 
