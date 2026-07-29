@@ -67,7 +67,7 @@ export const rooms: Room[] = [
     description:
       "The complete NorthScape luxury apartment — 3 private bedrooms, 3 full bathrooms, a spacious living room with timber ceilings, and a fully equipped chef's kitchen. Designed for families, travel groups, and long-stay guests looking for home-like comfort in Musanze.",
     amenities: ["wifi", "kitchen", "hotShower", "workDesk", "smartTv", "parking", "laundry", "security"],
-    images: [img.living[0], img.bedroom[1], img.kitchen[0], img.exterior.day, img.kitchen[3], img.bedroom[0]],
+    images: [img.living[0], img.bedroom[1], img.kitchen[0], img.exterior.day, img.kitchen[9], img.bedroom[3]],
     featured: true,
     isBooked: false,
     specs: {
@@ -84,7 +84,7 @@ export const rooms: Room[] = [
           "Crisp cotton linens & velvet throw blankets",
           "Built-in wardrobe & bedside warm lighting",
         ],
-        images: [img.bedroom[1], img.bedroom[2], img.bedroom[0]],
+        images: [img.bedroom[1], img.bedroom[2], img.bedroom[0], img.bedroom[3]],
       },
       kitchen: {
         title: "Full Chef's Kitchen (Igikoni)",
@@ -94,7 +94,7 @@ export const rooms: Room[] = [
           "Double stainless basin & granite counter",
           "Complete cookware, cutlery & dinnerware set",
         ],
-        images: [img.kitchen[2], img.kitchen[3], img.kitchen[4], img.kitchen[5]],
+        images: [img.kitchen[2], img.kitchen[3], img.kitchen[9], img.kitchen[10]],
       },
       bathroom: {
         title: "3 Private Bathrooms & Toilets (Douche 3)",
@@ -104,7 +104,7 @@ export const rooms: Room[] = [
           "Plush bath towels & complimentary toiletries",
           "Full tile finish with anti-slip flooring",
         ],
-        images: [img.kitchen[6], img.kitchen[1]],
+        images: [img.bathroom.main[0], img.bathroom.main[1], img.bathroom.main[4]],
       },
       living: {
         title: "Spacious Living Lounge (Uruganiriro)",
@@ -114,7 +114,7 @@ export const rooms: Room[] = [
           "Dining counter with bar stools",
           "Ambient warm lighting & calm mountain views",
         ],
-        images: [img.living[0], img.living[1], img.living[2], img.living[3]],
+        images: [img.living[0], img.living[1], img.living[6], img.living[8]],
       },
     },
   },
@@ -133,7 +133,7 @@ export const rooms: Room[] = [
     description:
       "A quiet, comfortable private guest room featuring a plush double bed, timber finishes, high-speed WiFi, and direct access to hot shower facilities. Ideal for solo travellers, couples, and short visits to Musanze.",
     amenities: ["wifi", "hotShower", "smartTv", "parking", "security"],
-    images: [img.bedroom[1], img.bedroom[0], img.living[2]],
+    images: [img.guestroom[0], img.guestroom[1], img.living[6]],
     featured: true,
     isBooked: false,
     specs: {
@@ -149,7 +149,7 @@ export const rooms: Room[] = [
           "Hand-crafted timber headboard",
           "Work desk & reading lamps",
         ],
-        images: [img.bedroom[1], img.bedroom[0]],
+        images: [img.guestroom[0], img.guestroom[1], img.guestroom[3]],
       },
       kitchen: {
         title: "Shared Kitchen Access",
@@ -166,7 +166,7 @@ export const rooms: Room[] = [
           "Clean ceramic toilet & sink",
           "Fresh towels provided",
         ],
-        images: [img.kitchen[6]],
+        images: [img.bathroom.guest[0], img.bathroom.guest[1], img.bathroom.guest[2]],
       },
       living: {
         title: "Common Living Area Access",
@@ -174,7 +174,7 @@ export const rooms: Room[] = [
           "Access to main timber-clad living lounge",
           "High-speed WiFi & secure parking",
         ],
-        images: [img.living[0]],
+        images: [img.living[0], img.living[6]],
       },
     },
   },
@@ -193,7 +193,7 @@ export const rooms: Room[] = [
     description:
       "Warm timber-clad guest room equipped with high-speed internet, hot water shower, regular housekeeping, and 24/7 gated security in a peaceful neighbourhood.",
     amenities: ["wifi", "hotShower", "parking", "security"],
-    images: [img.bedroom[2], img.bedroom[1], img.living[3]],
+    images: [img.guestroom[4], img.guestroom[5], img.living[7]],
     featured: true,
     isBooked: true,
     availableFrom: "2026-07-30",
@@ -209,7 +209,7 @@ export const rooms: Room[] = [
           "Comfortable double bed",
           "Crisp linens & blackout curtains",
         ],
-        images: [img.bedroom[2]],
+        images: [img.guestroom[4], img.guestroom[6]],
       },
       kitchen: {
         title: "Shared Kitchen",
@@ -219,12 +219,12 @@ export const rooms: Room[] = [
       bathroom: {
         title: "En-suite Shower & Toilet",
         items: ["Hot water shower & clean toilet"],
-        images: [img.kitchen[6]],
+        images: [img.bathroom.guest[1], img.bathroom.guest[2]],
       },
       living: {
         title: "Shared Lounge",
         items: ["Lounge & garden courtyard access"],
-        images: [img.living[3]],
+        images: [img.living[7], img.balcony[0]],
       },
     },
   },
@@ -250,7 +250,7 @@ export const rooms: Room[] = [
     description:
       "Spacious 3-bedroom apartment residence with 3 private bathrooms, modern gas stove kitchen, and marble-tiled living area. Excellent for monthly stays, gorilla trekking groups, and family retreats.",
     amenities: ["wifi", "kitchen", "hotShower", "workDesk", "smartTv", "parking", "laundry", "security"],
-    images: [img.kitchen[1], img.living[0], img.bedroom[1], img.exterior.night1],
+    images: [img.kitchen[11], img.living[8], img.bedroom[1], img.exterior.night1],
     featured: true,
     isBooked: false,
     specs: {
@@ -262,22 +262,22 @@ export const rooms: Room[] = [
       bedroom: {
         title: "3 Private Bedrooms",
         items: ["3 spacious bedrooms with premium mattresses", "Wardrobes & clean linens"],
-        images: [img.bedroom[1], img.bedroom[2]],
+        images: [img.bedroom[1], img.bedroom[2], img.bedroom[0]],
       },
       kitchen: {
         title: "Full Kitchen Equipment",
         items: ["Gas oven stove", "Blender & microwave", "Utensils & cookware"],
-        images: [img.kitchen[1], img.kitchen[4]],
+        images: [img.kitchen[1], img.kitchen[4], img.kitchen[10], img.kitchen[11]],
       },
       bathroom: {
         title: "3 Bathrooms & Toilets",
         items: ["3 hot water shower rooms & toilets"],
-        images: [img.kitchen[6]],
+        images: [img.bathroom.main[2], img.bathroom.main[3]],
       },
       living: {
         title: "Full Living Lounge",
         items: ["Velvet couches & dining bar"],
-        images: [img.living[0], img.living[1]],
+        images: [img.living[0], img.living[9]],
       },
     },
   },
