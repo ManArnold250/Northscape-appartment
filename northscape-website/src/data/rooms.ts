@@ -67,7 +67,7 @@ export const rooms: Room[] = [
     description:
       "The complete NorthScape luxury apartment — 3 private bedrooms, 3 full bathrooms, a spacious living room with timber ceilings, and a fully equipped chef's kitchen. Designed for families, travel groups, and long-stay guests looking for home-like comfort in Musanze.",
     amenities: ["wifi", "kitchen", "hotShower", "workDesk", "smartTv", "parking", "laundry", "security"],
-    images: [img.living[0], img.bedroom[1], img.kitchen[0], img.exterior.day, img.kitchen[9], img.bedroom[3]],
+    images: [img.living[6], img.bedroom[1], img.kitchen[0], img.exterior.day, img.kitchen[9], img.bedroom[3]],
     featured: true,
     isBooked: false,
     specs: {
@@ -133,7 +133,7 @@ export const rooms: Room[] = [
     description:
       "A quiet, comfortable private guest room featuring a plush double bed, timber finishes, high-speed WiFi, and direct access to hot shower facilities. Ideal for solo travellers, couples, and short visits to Musanze.",
     amenities: ["wifi", "hotShower", "smartTv", "parking", "security"],
-    images: [img.guestroom[0], img.guestroom[1], img.living[6]],
+    images: [img.guestroom[2], img.guestroom[0], img.guestroom[1], img.living[6]],
     featured: true,
     isBooked: false,
     specs: {
@@ -193,7 +193,7 @@ export const rooms: Room[] = [
     description:
       "Warm timber-clad guest room equipped with high-speed internet, hot water shower, regular housekeeping, and 24/7 gated security in a peaceful neighbourhood.",
     amenities: ["wifi", "hotShower", "parking", "security"],
-    images: [img.guestroom[4], img.guestroom[5], img.living[7]],
+    images: [img.guestroom[6], img.guestroom[4], img.guestroom[5], img.living[7]],
     featured: true,
     isBooked: true,
     availableFrom: "2026-07-30",
@@ -250,7 +250,7 @@ export const rooms: Room[] = [
     description:
       "Spacious 3-bedroom apartment residence with 3 private bathrooms, modern gas stove kitchen, and marble-tiled living area. Excellent for monthly stays, gorilla trekking groups, and family retreats.",
     amenities: ["wifi", "kitchen", "hotShower", "workDesk", "smartTv", "parking", "laundry", "security"],
-    images: [img.kitchen[11], img.living[8], img.bedroom[1], img.exterior.night1],
+    images: [img.living[9], img.bedroom[1], img.kitchen[11], img.exterior.night1],
     featured: true,
     isBooked: false,
     specs: {

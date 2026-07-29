@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Ruler, Star, ChevronLeft, ChevronRight, ArrowRight, MapPin, CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
+import { Users, Ruler, Star, ArrowRight, MapPin, CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
 import { getRoomBySlug, rooms } from "@/data/rooms";
 import { amenityIcon, amenityLabel, type AmenityKey } from "@/data/amenities";
 import { RoomCard } from "@/components/site/RoomCard";
@@ -59,7 +59,6 @@ function RoomDetail() {
   }, [initialRoom.slug]);
 
   const room = liveRooms.find((r) => r.slug === initialRoom.slug) || initialRoom;
-  const [idx, setIdx] = useState(0);
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
   const similar = liveRooms.filter((r) => r.id !== room.id).slice(0, 3);
 
@@ -103,37 +102,21 @@ function RoomDetail() {
           </div>
         </div>
 
-        {/* Main Photo Gallery Carousel */}
-        <div className="mt-6 grid gap-4 md:grid-cols-3 md:grid-rows-2 md:h-[520px]">
-          <div className="relative md:col-span-2 md:row-span-2 rounded-3xl overflow-hidden shadow-soft bg-black/10">
-            <img key={idx} src={room.images[idx]} alt={room.name} className="h-full w-full object-cover animate-[fade-in_.5s_ease-out] cursor-pointer" onClick={() => setLightboxImg(room.images[idx])} />
-            <button
-              onClick={() => setIdx((i) => (i - 1 + room.images.length) % room.images.length)}
-              className="absolute left-4 top-1/2 -translate-y-1/2 size-11 grid place-items-center rounded-full bg-background/85 backdrop-blur border border-border hover:bg-background shadow-md transition-transform active:scale-95"
-              aria-label="Previous"
-            >
-              <ChevronLeft className="size-5" />
-            </button>
-            <button
-              onClick={() => setIdx((i) => (i + 1) % room.images.length)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 size-11 grid place-items-center rounded-full bg-background/85 backdrop-blur border border-border hover:bg-background shadow-md transition-transform active:scale-95"
-              aria-label="Next"
-            >
-              <ChevronRight className="size-5" />
-            </button>
-            <div className="absolute bottom-4 left-4 flex gap-1.5">
-              {room.images.map((_, i) => (
-                <button key={i} onClick={() => setIdx(i)} className={`h-1.5 rounded-full transition-all ${i === idx ? "w-8 bg-white" : "w-3 bg-white/50"}`} />
-              ))}
-            </div>
-          </div>
-          {room.images.slice(0, 4).map((src, i) => (
+        {/* Photo Gallery Grid — all images, no slideshow */}
+        <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-4 auto-rows-[130px] sm:auto-rows-[170px] md:auto-rows-[190px]">
+          {room.images.map((src, i) => (
             <button
               key={i}
-              onClick={() => setIdx(i)}
-              className={`relative rounded-2xl overflow-hidden ${i >= 2 ? "hidden md:block" : ""} ${i === idx ? "ring-2 ring-accent" : ""}`}
+              onClick={() => setLightboxImg(src)}
+              className={`relative rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden shadow-soft group ${
+                i === 0 ? "col-span-2 row-span-2" : ""
+              }`}
             >
-              <img src={src} alt={`${room.name} view ${i + 1}`} className="h-full w-full object-cover" />
+              <img
+                src={src}
+                alt={`${room.name} view ${i + 1}`}
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
             </button>
           ))}
         </div>
