@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, X, Send, Sparkles, ArrowRight, Bot, ExternalLink } from "lucide-react";
-import { getRoomsWithLiveStatus } from "@/lib/bookingStore";
+import { getRoomsWithLiveStatus, getInitialRooms } from "@/lib/bookingStore";
+import type { Room } from "@/data/rooms";
 import { useLanguage, LANGUAGES, type LanguageCode } from "@/lib/i18nStore";
 
 type Message = {
@@ -66,7 +67,7 @@ const QUESTIONS_BY_LANG: Record<LanguageCode, string[]> = {
 };
 
 // Smart Multi-Lingual Response Generator for NorthScape Apartment
-function getBotResponse(input: string, activeLang: LanguageCode): { text: string; quickAction?: { label: string; url: string } } {
+function getBotResponse(input: string, activeLang: LanguageCode, liveRooms: Room[]): { text: string; quickAction?: { label: string; url: string } } {
   const query = input.toLowerCase().trim();
 
   // Detect language if user typed in a specific language
@@ -141,7 +142,7 @@ function getBotResponse(input: string, activeLang: LanguageCode): { text: string
     query.includes("availab") || query.includes("vacan") || query.includes("room") || query.includes("inzu") ||
     query.includes("chambre") || query.includes("vyumba") || query.includes("zimmer") || query.includes("habitacion") || query.includes("房间") || query.includes("空房")
   ) {
-    const rooms = getRoomsWithLiveStatus();
+    const rooms = liveRooms;
     const available = rooms.filter((r) => !r.isBooked);
 
     if (available.length === 0) {
@@ -290,6 +291,24 @@ export function ChatBot() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [liveRooms, setLiveRooms] = useState<Room[]>(() => getInitialRooms());
+
+  useEffect(() => {
+    let active = true;
+    getRoomsWithLiveStatus().then((r) => {
+      if (active) setLiveRooms(r);
+    });
+    const handleUpdate = () => {
+      getRoomsWithLiveStatus().then((r) => {
+        if (active) setLiveRooms(r);
+      });
+    };
+    window.addEventListener("northscape_booking_updated", handleUpdate);
+    return () => {
+      active = false;
+      window.removeEventListener("northscape_booking_updated", handleUpdate);
+    };
+  }, []);
 
   // Initialize welcome message based on active language
   useEffect(() => {
@@ -327,7 +346,7 @@ export function ChatBot() {
     setIsTyping(true);
 
     setTimeout(() => {
-      const resp = getBotResponse(query, lang);
+      const resp = getBotResponse(query, lang, liveRooms);
       const botMsg: Message = {
         id: `bot-${Date.now()}`,
         sender: "bot",

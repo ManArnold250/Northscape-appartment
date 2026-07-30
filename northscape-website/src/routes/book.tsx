@@ -2,8 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Calendar, Users, ArrowRight, ShieldCheck, Check } from "lucide-react";
-import { getRoomsWithLiveStatus } from "@/lib/bookingStore";
-import { saveBooking } from "@/lib/bookingStore";
+import { getRoomsWithLiveStatus, getInitialRooms, saveBooking } from "@/lib/bookingStore";
 import { img } from "@/lib/images";
 import { SectionTitle } from "@/components/site/SectionTitle";
 
@@ -23,12 +22,23 @@ export const Route = createFileRoute("/book")({
 
 function BookingPage() {
   const currentUser = useMemo(() => getStoredUser(), []);
-  const [liveRooms, setLiveRooms] = useState(() => getRoomsWithLiveStatus());
+  const [liveRooms, setLiveRooms] = useState(() => getInitialRooms());
 
   useEffect(() => {
-    const handleUpdate = () => setLiveRooms(getRoomsWithLiveStatus());
+    let active = true;
+    getRoomsWithLiveStatus().then((r) => {
+      if (active) setLiveRooms(r);
+    });
+    const handleUpdate = () => {
+      getRoomsWithLiveStatus().then((r) => {
+        if (active) setLiveRooms(r);
+      });
+    };
     window.addEventListener("northscape_booking_updated", handleUpdate);
-    return () => window.removeEventListener("northscape_booking_updated", handleUpdate);
+    return () => {
+      active = false;
+      window.removeEventListener("northscape_booking_updated", handleUpdate);
+    };
   }, []);
 
   const [roomSlug, setRoomSlug] = useState(() => {
@@ -100,25 +110,29 @@ function BookingPage() {
     return { totalRWF: rwf, totalUSD: usd, rateTierName: "Standard Daily Rate" };
   }, [nights, room]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const record = saveBooking({
-      roomSlug: room?.slug || "full-apartment-luxury",
-      roomName: room?.name || "NorthScape Residence",
-      guestName: `${firstName} ${lastName}`.trim() || "Valued Guest",
-      guestEmail: email,
-      guestPhone: phone,
-      checkIn,
-      checkOut,
-      guestsCount: guests,
-      totalRWF,
-      totalUSD,
-      specialRequests,
-    });
+    try {
+      const record = await saveBooking({
+        roomSlug: room?.slug || "full-apartment-luxury",
+        roomName: room?.name || "NorthScape Residence",
+        guestName: `${firstName} ${lastName}`.trim() || "Valued Guest",
+        guestEmail: email,
+        guestPhone: phone,
+        checkIn,
+        checkOut,
+        guestsCount: guests,
+        totalRWF,
+        totalUSD,
+        specialRequests,
+      });
 
-    window.location.href = `/my-booking?code=${record.bookingCode}`;
+      window.location.href = `/my-booking?code=${record.bookingCode}`;
+    } catch (_e) {
+      setIsSubmitting(false);
+    }
   };
 
   const roomImage = room?.images?.[0] || img.living[0];

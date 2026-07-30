@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS `admins` (
 INSERT IGNORE INTO `rooms` (`id`, `slug`, `name`, `type`, `price_usd`, `price_rwf`, `bedrooms`, `bathrooms`, `has_living_room`, `capacity`, `size`, `status`, `available_from`) VALUES
 (1, 'full-apartment-luxury', 'Full NorthScape Residence (3 Bed & 3 Bath)', 'Full Apartment', 75.00, 100000.00, 3, 3, 1, 6, '95 m²', 'available', NULL),
 (2, 'executive-guest-room-1', 'Executive Guest Room A', 'Guest Room', 15.00, 20000.00, 1, 1, 0, 2, '28 m²', 'available', NULL),
-(3, 'executive-guest-room-2', 'Executive Guest Room B', 'Guest Room', 15.00, 20000.00, 1, 1, 0, 2, '28 m²', 'booked', '2026-07-30'),
+(3, 'executive-guest-room-2', 'Executive Guest Room B', 'Guest Room', 15.00, 20000.00, 1, 1, 0, 2, '28 m²', 'available', NULL),
 (4, 'full-apartment-wing-b', 'NorthScape Residence Wing B (3 Bed & 3 Bath)', 'Full Apartment', 75.00, 100000.00, 3, 3, 1, 6, '95 m²', 'available', NULL);
 
 -- Seed Default Admin User (username: admin, pin: northscape2026)

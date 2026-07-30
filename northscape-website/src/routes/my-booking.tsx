@@ -23,16 +23,34 @@ function MyBookingPage() {
       const paramCode = new URLSearchParams(window.location.search).get("code");
       if (paramCode) return paramCode;
     }
-    const all = getStoredBookings();
-    const active = all.find((b) => b.status === "confirmed");
-    return active?.bookingCode || "";
+    return "";
   });
 
-  const [booking, setBooking] = useState<CustomerBooking | undefined>(() => {
-    if (bookingCode) return getBookingByCode(bookingCode);
-    const all = getStoredBookings();
-    return all.find((b) => b.status === "confirmed");
-  });
+  const [booking, setBooking] = useState<CustomerBooking | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    const load = async () => {
+      let found: CustomerBooking | undefined;
+      if (bookingCode) {
+        found = await getBookingByCode(bookingCode);
+      } else {
+        const all = await getStoredBookings();
+        found = all.find((b) => b.status === "confirmed");
+        if (found) setBookingCode(found.bookingCode);
+      }
+      if (active) {
+        setBooking(found);
+        setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
+  }, [bookingCode]);
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isCancelled, setIsCancelled] = useState(false);
@@ -60,10 +78,9 @@ function MyBookingPage() {
   useEffect(() => {
     const handleUpdate = () => {
       if (bookingCode) {
-        setBooking(getBookingByCode(bookingCode));
+        getBookingByCode(bookingCode).then(setBooking);
       } else {
-        const all = getStoredBookings();
-        setBooking(all.find((b) => b.status === "confirmed"));
+        getStoredBookings().then((all) => setBooking(all.find((b) => b.status === "confirmed")));
       }
     };
     window.addEventListener("northscape_booking_updated", handleUpdate);
@@ -78,9 +95,9 @@ function MyBookingPage() {
       )}`
     : `https://wa.me/250788764000?text=${encodeURIComponent("Hello NorthScape, I have a question about my stay.")}`;
 
-  const handleConfirmCancel = () => {
+  const handleConfirmCancel = async () => {
     if (!booking) return;
-    const success = cancelBooking(booking.bookingCode);
+    const success = await cancelBooking(booking.bookingCode);
     if (success) {
       setBooking((prev) => (prev ? { ...prev, status: "cancelled" } : undefined));
       setIsCancelled(true);
@@ -99,7 +116,11 @@ function MyBookingPage() {
       </section>
 
       <section className="container-x mt-10 pb-24 max-w-4xl mx-auto">
-        {!booking || booking.status === "cancelled" || isCancelled ? (
+        {loading ? (
+          <div className="rounded-3xl border border-border bg-card p-12 text-center shadow-soft text-muted-foreground text-sm">
+            Loading your reservation…
+          </div>
+        ) : !booking || booking.status === "cancelled" || isCancelled ? (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}

@@ -9,7 +9,7 @@ import { whyChooseUs, amenityIcon, amenityLabel } from "@/data/amenities";
 import { SectionTitle } from "@/components/site/SectionTitle";
 import { RoomCard } from "@/components/site/RoomCard";
 
-import { getRoomsWithLiveStatus } from "@/lib/bookingStore";
+import { getRoomsWithLiveStatus, getInitialRooms } from "@/lib/bookingStore";
 import { getAllReviews } from "@/lib/reviewStore";
 
 export const Route = createFileRoute("/")({
@@ -31,13 +31,24 @@ export const Route = createFileRoute("/")({
 const HERO = [img.exterior.day, img.exterior.wide, img.exterior.night1, img.exterior.front];
 
 function Home() {
-  const [liveRooms, setLiveRooms] = useState(() => getRoomsWithLiveStatus());
+  const [liveRooms, setLiveRooms] = useState(() => getInitialRooms());
   const [allReviews, setAllReviews] = useState(() => getAllReviews());
 
   useEffect(() => {
-    const handleUpdate = () => setLiveRooms(getRoomsWithLiveStatus());
+    let active = true;
+    getRoomsWithLiveStatus().then((r) => {
+      if (active) setLiveRooms(r);
+    });
+    const handleUpdate = () => {
+      getRoomsWithLiveStatus().then((r) => {
+        if (active) setLiveRooms(r);
+      });
+    };
     window.addEventListener("northscape_booking_updated", handleUpdate);
-    return () => window.removeEventListener("northscape_booking_updated", handleUpdate);
+    return () => {
+      active = false;
+      window.removeEventListener("northscape_booking_updated", handleUpdate);
+    };
   }, []);
 
   useEffect(() => {

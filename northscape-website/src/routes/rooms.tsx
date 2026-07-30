@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { RoomCard } from "@/components/site/RoomCard";
 import { SectionTitle } from "@/components/site/SectionTitle";
 import { img } from "@/lib/images";
-import { getRoomsWithLiveStatus } from "@/lib/bookingStore";
+import { getRoomsWithLiveStatus, getInitialRooms } from "@/lib/bookingStore";
 
 export const Route = createFileRoute("/rooms")({
   head: () => ({
@@ -21,15 +21,25 @@ export const Route = createFileRoute("/rooms")({
 type SortKey = "featured" | "price-asc" | "price-desc" | "rating";
 
 function RoomsPage() {
-  const [liveRooms, setLiveRooms] = useState(() => getRoomsWithLiveStatus());
+  const [liveRooms, setLiveRooms] = useState(() => getInitialRooms());
 
   useEffect(() => {
-    const handleUpdate = () => setLiveRooms(getRoomsWithLiveStatus());
+    let active = true;
+    getRoomsWithLiveStatus().then((r) => {
+      if (active) setLiveRooms(r);
+    });
+    const handleUpdate = () => {
+      getRoomsWithLiveStatus().then((r) => {
+        if (active) setLiveRooms(r);
+      });
+    };
     window.addEventListener("northscape_booking_updated", handleUpdate);
-    return () => window.removeEventListener("northscape_booking_updated", handleUpdate);
+    return () => {
+      active = false;
+      window.removeEventListener("northscape_booking_updated", handleUpdate);
+    };
   }, []);
 
-  const [q, setQ] = useState("");
   const [type, setType] = useState<string>("All");
   const [availability, setAvailability] = useState<"All" | "Available" | "Booked">("All");
   const [guests, setGuests] = useState(1);
@@ -45,11 +55,8 @@ function RoomsPage() {
         (availability === "Booked" && r.isBooked);
       const matchCapacity = r.capacity >= guests;
       const matchPrice = r.price <= maxPrice;
-      const matchQ =
-        q.trim() === "" ||
-        (r.name + r.short + r.description).toLowerCase().includes(q.toLowerCase());
 
-      return matchType && matchAvail && matchCapacity && matchPrice && matchQ;
+      return matchType && matchAvail && matchCapacity && matchPrice;
     });
 
     switch (sort) {
@@ -64,7 +71,7 @@ function RoomsPage() {
         break;
     }
     return list;
-  }, [q, type, availability, guests, maxPrice, sort]);
+  }, [type, availability, guests, maxPrice, sort]);
 
   return (
     <div>
@@ -82,16 +89,6 @@ function RoomsPage() {
 
       <section className="container-x pb-24">
         <div className="rounded-3xl border border-border/70 bg-card p-4 sm:p-6 shadow-soft space-y-4">
-          <label className="relative block">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search rooms by title or amenity…"
-              className="w-full rounded-full bg-background border border-border pl-11 pr-4 py-2.5 text-sm focus:ring-focus min-h-[44px]"
-            />
-          </label>
-
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center gap-2 sm:gap-3">
             <select
               value={availability}

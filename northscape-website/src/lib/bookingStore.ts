@@ -1,105 +1,57 @@
+// This module used to store bookings in the browser's localStorage, which
+// meant every visitor saw a different "reality" and the admin panel (backed
+// by the database) never agreed with what customers/public pages saw.
+// It now delegates everything to the shared database layer in `db.ts`, so
+// there is a single source of truth for room availability and bookings.
+import {
+  createBooking,
+  getAllBookings,
+  getBookingByCodeDb,
+  cancelBookingByCode,
+  getRoomsWithAvailability,
+  type BookingRecord,
+} from "@/lib/db";
 import { rooms as initialRooms, type Room } from "@/data/rooms";
 
-export type CustomerBooking = {
-  id: string;
-  bookingCode: string;
-  roomSlug: string;
-  roomName: string;
-  guestName: string;
-  guestEmail: string;
-  guestPhone: string;
-  checkIn: string;
-  checkOut: string;
-  guestsCount: number;
-  totalRWF: number;
-  totalUSD: number;
-  status: "confirmed" | "cancelled";
-  specialRequests?: string;
-  createdAt: string;
-};
+export type CustomerBooking = BookingRecord;
 
-const STORAGE_KEY = "northscape_user_bookings";
-
-export function getStoredBookings(): CustomerBooking[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw);
-  } catch (_e) {
-    return [];
-  }
+/** Rooms + live booked/available status, sourced from the database. */
+export async function getRoomsWithLiveStatus(): Promise<Room[]> {
+  return getRoomsWithAvailability();
 }
 
-export function saveBooking(booking: Omit<CustomerBooking, "id" | "bookingCode" | "createdAt" | "status">): CustomerBooking {
-  const existing = getStoredBookings();
-  const code = `NS-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-  const newRecord: CustomerBooking = {
-    ...booking,
-    id: `bk-${Date.now()}`,
-    bookingCode: code,
-    status: "confirmed",
-    createdAt: new Date().toISOString(),
-  };
+/** Synchronous fallback for the very first paint, before the DB responds. */
+export function getInitialRooms(): Room[] {
+  return initialRooms;
+}
 
-  const updated = [newRecord, ...existing];
+export async function saveBooking(
+  booking: Omit<CustomerBooking, "id" | "bookingCode" | "createdAt" | "status">
+): Promise<CustomerBooking> {
+  const record = await createBooking({ ...booking, status: "confirmed" });
   if (typeof window !== "undefined") {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    window.dispatchEvent(new CustomEvent("northscape_booking_updated", { detail: newRecord }));
+    window.dispatchEvent(new CustomEvent("northscape_booking_updated", { detail: record }));
   }
-  return newRecord;
+  return record;
 }
 
-export function cancelBooking(bookingCode: string): boolean {
-  const existing = getStoredBookings();
-  const index = existing.findIndex((b) => b.bookingCode === bookingCode);
-  if (index === -1) return false;
-
-  existing[index].status = "cancelled";
-  if (typeof window !== "undefined") {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
-    window.dispatchEvent(new CustomEvent("northscape_booking_updated", { detail: existing[index] }));
+export async function cancelBooking(bookingCode: string): Promise<boolean> {
+  const ok = await cancelBookingByCode(bookingCode);
+  if (ok && typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("northscape_booking_updated", { detail: { bookingCode } }));
   }
-  return true;
+  return ok;
 }
 
-export function getBookingByCode(bookingCode: string): CustomerBooking | undefined {
-  const bookings = getStoredBookings();
-  return bookings.find((b) => b.bookingCode === bookingCode);
+export async function getBookingByCode(bookingCode: string): Promise<CustomerBooking | undefined> {
+  return getBookingByCodeDb(bookingCode);
 }
 
-export function getLatestActiveBooking(): CustomerBooking | undefined {
-  const bookings = getStoredBookings();
+export async function getStoredBookings(): Promise<CustomerBooking[]> {
+  return getAllBookings();
+}
+
+export async function getLatestActiveBooking(): Promise<CustomerBooking | undefined> {
+  const bookings = await getAllBookings();
   return bookings.find((b) => b.status === "confirmed");
-}
-
-export function getRoomsWithLiveStatus(): Room[] {
-  const bookings = getStoredBookings();
-  const todayStr = new Date().toISOString().slice(0, 10);
-
-  return initialRooms.map((r) => {
-    // Check if there is an active non-cancelled booking for this room where checkOut >= todayStr
-    const activeBooking = bookings.find(
-      (b) => b.roomSlug === r.slug && b.status === "confirmed" && b.checkOut >= todayStr
-    );
-
-    if (activeBooking) {
-      return {
-        ...r,
-        isBooked: true,
-        availableFrom: activeBooking.checkOut,
-      };
-    }
-
-    // Default static initialRooms state check
-    if (r.isBooked && r.availableFrom && r.availableFrom <= todayStr) {
-      return {
-        ...r,
-        isBooked: false,
-        availableFrom: undefined,
-      };
-    }
-
-    return r;
-  });
 }

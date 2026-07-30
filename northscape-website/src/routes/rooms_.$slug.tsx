@@ -7,7 +7,7 @@ import { amenityIcon, amenityLabel, type AmenityKey } from "@/data/amenities";
 import { RoomCard } from "@/components/site/RoomCard";
 import { SectionTitle } from "@/components/site/SectionTitle";
 
-import { getRoomsWithLiveStatus } from "@/lib/bookingStore";
+import { getRoomsWithLiveStatus, getInitialRooms } from "@/lib/bookingStore";
 import { getReviewsForRoom, getRoomRatingStats } from "@/lib/reviewStore";
 
 export const Route = createFileRoute("/rooms_/$slug")({
@@ -39,14 +39,25 @@ function RoomDetail() {
   const data = Route.useLoaderData() as { room: import("@/data/rooms").Room };
   const initialRoom = data.room;
 
-  const [liveRooms, setLiveRooms] = useState(() => getRoomsWithLiveStatus());
+  const [liveRooms, setLiveRooms] = useState(() => getInitialRooms());
   const [roomReviews, setRoomReviews] = useState(() => getReviewsForRoom(initialRoom.slug));
   const [roomStats, setRoomStats] = useState(() => getRoomRatingStats(initialRoom.slug));
 
   useEffect(() => {
-    const handleUpdate = () => setLiveRooms(getRoomsWithLiveStatus());
+    let active = true;
+    getRoomsWithLiveStatus().then((r) => {
+      if (active) setLiveRooms(r);
+    });
+    const handleUpdate = () => {
+      getRoomsWithLiveStatus().then((r) => {
+        if (active) setLiveRooms(r);
+      });
+    };
     window.addEventListener("northscape_booking_updated", handleUpdate);
-    return () => window.removeEventListener("northscape_booking_updated", handleUpdate);
+    return () => {
+      active = false;
+      window.removeEventListener("northscape_booking_updated", handleUpdate);
+    };
   }, []);
 
   useEffect(() => {

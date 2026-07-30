@@ -195,8 +195,7 @@ export const rooms: Room[] = [
     amenities: ["wifi", "hotShower", "parking", "security"],
     images: [img.guestroom[6], img.guestroom[4], img.guestroom[5], img.living[7]],
     featured: true,
-    isBooked: true,
-    availableFrom: "2026-07-30",
+    isBooked: false,
     specs: {
       bedrooms: 1,
       bathrooms: 1,
