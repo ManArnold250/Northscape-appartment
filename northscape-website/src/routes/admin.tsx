@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, LogOut, CheckCircle, Clock, AlertTriangle, Search, Plus, Calendar, DollarSign, Users, RefreshCw } from "lucide-react";
-import { getAllBookings, toggleRoomStatus, getRoomsWithAvailability, type BookingRecord } from "@/lib/db";
+import { getRoomsWithAvailabilityFn, getAllBookingsFn, toggleRoomStatusFn } from "@/lib/serverFns";
+import type { BookingRecord } from "@/lib/db";
 import type { Room } from "@/data/rooms";
 import { SectionTitle } from "@/components/site/SectionTitle";
 
@@ -36,8 +37,8 @@ function AdminPage() {
 
   const refreshData = async () => {
     setLoading(true);
-    const r = await getRoomsWithAvailability();
-    const b = await getAllBookings();
+    const r = await getRoomsWithAvailabilityFn();
+    const b = await getAllBookingsFn();
     setRoomsList(r);
     setBookingsList(b);
     setLoading(false);
@@ -62,7 +63,13 @@ function AdminPage() {
   const handleToggleStatus = async (slug: string, currentBooked: boolean, availDate?: string) => {
     const nextStatus = currentBooked ? "available" : "booked";
     const defaultAvail = new Date(Date.now() + 86400000 * 3).toISOString().slice(0, 10);
-    await toggleRoomStatus(slug, nextStatus, nextStatus === "booked" ? (availDate || defaultAvail) : undefined);
+    await toggleRoomStatusFn({
+      data: {
+        slug,
+        status: nextStatus,
+        availableFrom: nextStatus === "booked" ? (availDate || defaultAvail) : undefined,
+      },
+    });
     await refreshData();
   };
 
