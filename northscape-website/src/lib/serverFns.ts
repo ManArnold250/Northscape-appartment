@@ -70,7 +70,7 @@ export const confirmPaymentFn = createServerFn({ method: "POST" })
 export const verifyAdminPinFn = createServerFn({ method: "POST" })
   .validator((data: { pin: string }) => data)
   .handler(async ({ data }) => {
-    const correctPin = process.env.ADMIN_PIN || "NorthScape#2026!";
+    const correctPin = (process.env.ADMIN_PIN || "NorthScape#2026!").trim();
     // Constant-time-ish comparison isn't critical here (low-value target,
     // rate limiting would matter more at scale), but we avoid ever echoing
     // the correct value back to the client on failure.
