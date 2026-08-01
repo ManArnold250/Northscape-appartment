@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, LogOut, CheckCircle, Clock, AlertTriangle, Search, Plus, Calendar, DollarSign, Users, RefreshCw, Smartphone, Check, X } from "lucide-react";
-import { getRoomsWithAvailabilityFn, getAllBookingsFn, toggleRoomStatusFn, confirmPaymentFn, rejectPaymentFn } from "@/lib/serverFns";
+import { getRoomsWithAvailabilityFn, getAllBookingsFn, toggleRoomStatusFn, confirmPaymentFn, rejectPaymentFn, verifyAdminPinFn } from "@/lib/serverFns";
 import type { BookingRecord } from "@/lib/db";
 import type { Room } from "@/data/rooms";
 import { SectionTitle } from "@/components/site/SectionTitle";
@@ -21,6 +21,8 @@ function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
+  const [checkingPin, setCheckingPin] = useState(false);
+  const [attempts, setAttempts] = useState(0);
   
   const [roomsList, setRoomsList] = useState<Room[]>([]);
   const [bookingsList, setBookingsList] = useState<BookingRecord[]>([]);
@@ -50,13 +52,31 @@ function AdminPage() {
     }
   }, [authenticated]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin.trim() === "northscape2026" || pin.trim() === "1234") {
-      setAuthenticated(true);
-      setError("");
-    } else {
-      setError("Invalid Admin PIN / Password. Try 'northscape2026'");
+    if (checkingPin) return;
+
+    if (attempts >= 5) {
+      setError("Too many failed attempts. Please try again later.");
+      return;
+    }
+
+    setCheckingPin(true);
+    setError("");
+    try {
+      const isValid = await verifyAdminPinFn({ data: { pin } });
+      if (isValid) {
+        setAuthenticated(true);
+        setAttempts(0);
+      } else {
+        setAttempts((n) => n + 1);
+        setError("Incorrect PIN.");
+        setPin("");
+      }
+    } catch (_e) {
+      setError("Couldn't verify PIN. Please try again.");
+    } finally {
+      setCheckingPin(false);
     }
   };
 
@@ -116,7 +136,7 @@ function AdminPage() {
           </div>
           <h2 className="mt-6 text-center font-display text-3xl">Admin Management Portal</h2>
           <p className="mt-2 text-center text-sm text-muted-foreground">
-            Enter private admin PIN or password to manage NorthScape bookings & XAMPP database.
+            Enter your private admin PIN to manage NorthScape bookings and room availability.
           </p>
 
           <form onSubmit={handleLogin} className="mt-6 space-y-4">
@@ -125,10 +145,12 @@ function AdminPage() {
               <input
                 type="password"
                 required
+                autoFocus
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
-                placeholder="Enter PIN (Default: northscape2026)"
-                className="mt-1.5 w-full rounded-xl bg-background border border-border px-4 py-3 text-center text-lg font-mono focus:ring-focus min-h-[48px]"
+                placeholder="Enter PIN"
+                disabled={checkingPin || attempts >= 5}
+                className="mt-1.5 w-full rounded-xl bg-background border border-border px-4 py-3 text-center text-lg font-mono focus:ring-focus min-h-[48px] disabled:opacity-50"
               />
             </label>
 
@@ -136,9 +158,10 @@ function AdminPage() {
 
             <button
               type="submit"
-              className="w-full rounded-full bg-primary text-primary-foreground py-3.5 text-sm font-semibold shadow-soft hover:opacity-90 transition-all min-h-[48px]"
+              disabled={checkingPin || attempts >= 5}
+              className="w-full rounded-full bg-primary text-primary-foreground py-3.5 text-sm font-semibold shadow-soft hover:opacity-90 transition-all min-h-[48px] disabled:opacity-50"
             >
-              Authenticate Admin
+              {checkingPin ? "Verifying..." : "Authenticate Admin"}
             </button>
           </form>
         </motion.div>

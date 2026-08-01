@@ -63,6 +63,20 @@ export const confirmPaymentFn = createServerFn({ method: "POST" })
     return confirmPayment(data.code);
   });
 
+// The real admin PIN lives only here, on the server, read from an
+// environment variable. It is never sent to the browser — the client only
+// ever gets back true/false, so it can't be read out of the JS bundle the
+// way a client-side string comparison could be.
+export const verifyAdminPinFn = createServerFn({ method: "POST" })
+  .validator((data: { pin: string }) => data)
+  .handler(async ({ data }) => {
+    const correctPin = process.env.ADMIN_PIN || "NorthScape#2026!";
+    // Constant-time-ish comparison isn't critical here (low-value target,
+    // rate limiting would matter more at scale), but we avoid ever echoing
+    // the correct value back to the client on failure.
+    return data.pin.trim() === correctPin;
+  });
+
 export const rejectPaymentFn = createServerFn({ method: "POST" })
   .validator((data: { code: string }) => data)
   .handler(async ({ data }) => {
