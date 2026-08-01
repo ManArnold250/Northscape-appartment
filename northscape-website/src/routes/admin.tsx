@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, LogOut, CheckCircle, Clock, AlertTriangle, Search, Plus, Calendar, DollarSign, Users, RefreshCw } from "lucide-react";
-import { getRoomsWithAvailabilityFn, getAllBookingsFn, toggleRoomStatusFn } from "@/lib/serverFns";
+import { Lock, LogOut, CheckCircle, Clock, AlertTriangle, Search, Plus, Calendar, DollarSign, Users, RefreshCw, Smartphone, Check, X } from "lucide-react";
+import { getRoomsWithAvailabilityFn, getAllBookingsFn, toggleRoomStatusFn, confirmPaymentFn, rejectPaymentFn } from "@/lib/serverFns";
 import type { BookingRecord } from "@/lib/db";
 import type { Room } from "@/data/rooms";
 import { SectionTitle } from "@/components/site/SectionTitle";
@@ -73,6 +73,22 @@ function AdminPage() {
     await refreshData();
   };
 
+  const [payingCode, setPayingCode] = useState<string | null>(null);
+
+  const handleConfirmPayment = async (code: string) => {
+    setPayingCode(code);
+    await confirmPaymentFn({ data: { code } });
+    await refreshData();
+    setPayingCode(null);
+  };
+
+  const handleRejectPayment = async (code: string) => {
+    setPayingCode(code);
+    await rejectPaymentFn({ data: { code } });
+    await refreshData();
+    setPayingCode(null);
+  };
+
   const totalRevenueRWF = bookingsList.reduce((acc, b) => acc + (b.totalRWF || 0), 0);
   const activeBookingsCount = bookingsList.filter((b) => b.status === "confirmed").length;
   const occupiedRoomsCount = roomsList.filter((r) => r.isBooked).length;
@@ -84,6 +100,8 @@ function AdminPage() {
       b.bookingCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       b.roomName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const pendingPayments = bookingsList.filter((b) => b.paymentStatus === "pending_verification");
 
   if (!authenticated) {
     return (
@@ -187,10 +205,63 @@ function AdminPage() {
             <span className="text-xs uppercase tracking-widest font-semibold">Database Connection</span>
             <span className="size-3 rounded-full bg-emerald-500 animate-ping" />
           </div>
-          <div className="mt-3 font-display text-2xl font-bold text-emerald-700 dark:text-emerald-400">XAMPP Active</div>
-          <div className="mt-1 text-xs text-muted-foreground">MySQL localhost:3306</div>
+          <div className="mt-3 font-display text-2xl font-bold text-emerald-700 dark:text-emerald-400">Database Live</div>
+          <div className="mt-1 text-xs text-muted-foreground">Railway MySQL</div>
         </div>
       </div>
+
+      {/* Pending Mobile Money Payments — needs manual verification */}
+      {pendingPayments.length > 0 && (
+        <div className="rounded-3xl border-2 border-amber-500/40 bg-amber-500/5 p-6 shadow-soft space-y-5">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-full bg-amber-500/20 grid place-items-center text-amber-600 dark:text-amber-400 shrink-0">
+              <Smartphone className="size-5" />
+            </div>
+            <div>
+              <h3 className="font-display text-2xl">Pending Payment Verification</h3>
+              <p className="text-sm text-muted-foreground">
+                Check each transaction reference against your MoMo/Airtel SMS before confirming.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {pendingPayments.map((b) => (
+              <div key={b.id} className="rounded-2xl border border-border/70 bg-card p-4 flex flex-wrap items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-xs font-bold text-accent">{b.bookingCode}</span>
+                    <span className="rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-semibold">
+                      {b.paymentMethod === "momo" ? "MTN MoMo" : b.paymentMethod === "airtel" ? "Airtel Money" : "—"}
+                    </span>
+                  </div>
+                  <div className="mt-1 font-semibold text-sm">{b.guestName} · {b.roomName}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    Reference: <span className="font-mono font-medium text-foreground">{b.paymentReference || "—"}</span>
+                    {" · "}Amount: <span className="font-semibold text-foreground">{b.totalRWF.toLocaleString()} RWF</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => handleConfirmPayment(b.bookingCode)}
+                    disabled={payingCode === b.bookingCode}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 text-white px-4 py-2 text-xs font-semibold hover:bg-emerald-700 transition-all disabled:opacity-50"
+                  >
+                    <Check className="size-3.5" /> Confirm
+                  </button>
+                  <button
+                    onClick={() => handleRejectPayment(b.bookingCode)}
+                    disabled={payingCode === b.bookingCode}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-destructive/15 text-destructive px-4 py-2 text-xs font-semibold hover:bg-destructive/25 transition-all disabled:opacity-50"
+                  >
+                    <X className="size-3.5" /> Reject
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Room Status & Re-availability Control Grid */}
       <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-soft space-y-6">
@@ -291,9 +362,23 @@ function AdminPage() {
                     {b.totalRWF ? `${b.totalRWF.toLocaleString()} RWF` : `$${b.totalUSD}`}
                   </td>
                   <td className="py-3.5 px-4">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 text-xs font-semibold px-3 py-1">
-                      Confirmed
-                    </span>
+                    {b.paymentStatus === "confirmed" ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 text-xs font-semibold px-3 py-1">
+                        Confirmed
+                      </span>
+                    ) : b.paymentStatus === "pending_verification" ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 text-xs font-semibold px-3 py-1">
+                        Pending Payment
+                      </span>
+                    ) : b.paymentStatus === "rejected" || b.status === "cancelled" ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-destructive/15 text-destructive text-xs font-semibold px-3 py-1">
+                        Cancelled
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-secondary text-secondary-foreground text-xs font-semibold px-3 py-1">
+                        {b.status}
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}

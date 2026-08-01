@@ -12,6 +12,8 @@ import {
   getBookingByCodeFn,
   cancelBookingFn,
   getRoomsWithAvailabilityFn,
+  confirmPaymentFn,
+  rejectPaymentFn,
 } from "@/lib/serverFns";
 import type { BookingRecord } from "@/lib/db";
 import { rooms as initialRooms, type Room } from "@/data/rooms";
@@ -29,13 +31,31 @@ export function getInitialRooms(): Room[] {
 }
 
 export async function saveBooking(
-  booking: Omit<CustomerBooking, "id" | "bookingCode" | "createdAt" | "status">
+  booking: Omit<CustomerBooking, "id" | "bookingCode" | "createdAt" | "status" | "paymentStatus">
 ): Promise<CustomerBooking> {
-  const record = await createBookingFn({ data: booking });
+  const record = await createBookingFn({
+    data: { ...booking, status: "pending", paymentStatus: "pending_verification" },
+  });
   if (typeof window !== "undefined") {
     window.dispatchEvent(new CustomEvent("northscape_booking_updated", { detail: record }));
   }
   return record;
+}
+
+export async function confirmBookingPayment(bookingCode: string): Promise<boolean> {
+  const ok = await confirmPaymentFn({ data: { code: bookingCode } });
+  if (ok && typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("northscape_booking_updated", { detail: { bookingCode } }));
+  }
+  return ok;
+}
+
+export async function rejectBookingPayment(bookingCode: string): Promise<boolean> {
+  const ok = await rejectPaymentFn({ data: { code: bookingCode } });
+  if (ok && typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("northscape_booking_updated", { detail: { bookingCode } }));
+  }
+  return ok;
 }
 
 export async function cancelBooking(bookingCode: string): Promise<boolean> {

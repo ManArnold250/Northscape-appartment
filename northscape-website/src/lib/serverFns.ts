@@ -20,6 +20,8 @@ import {
   getBookingByCodeDb,
   cancelBookingByCode,
   toggleRoomStatus,
+  confirmPayment,
+  rejectPayment,
   type BookingRecord,
 } from "@/lib/db";
 
@@ -28,9 +30,9 @@ export const getRoomsWithAvailabilityFn = createServerFn({ method: "GET" }).hand
 });
 
 export const createBookingFn = createServerFn({ method: "POST" })
-  .validator((data: Omit<BookingRecord, "id" | "bookingCode" | "createdAt" | "status">) => data)
+  .validator((data: Omit<BookingRecord, "id" | "bookingCode" | "createdAt">) => data)
   .handler(async ({ data }) => {
-    return createBooking({ ...data, status: "confirmed" });
+    return createBooking(data);
   });
 
 export const getAllBookingsFn = createServerFn({ method: "GET" }).handler(async () => {
@@ -53,4 +55,16 @@ export const toggleRoomStatusFn = createServerFn({ method: "POST" })
   .validator((data: { slug: string; status: "available" | "booked" | "maintenance"; availableFrom?: string }) => data)
   .handler(async ({ data }) => {
     return toggleRoomStatus(data.slug, data.status, data.availableFrom);
+  });
+
+export const confirmPaymentFn = createServerFn({ method: "POST" })
+  .validator((data: { code: string }) => data)
+  .handler(async ({ data }) => {
+    return confirmPayment(data.code);
+  });
+
+export const rejectPaymentFn = createServerFn({ method: "POST" })
+  .validator((data: { code: string }) => data)
+  .handler(async ({ data }) => {
+    return rejectPayment(data.code);
   });

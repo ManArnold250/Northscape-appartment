@@ -38,7 +38,7 @@ function MyBookingPage() {
         found = await getBookingByCode(bookingCode);
       } else {
         const all = await getStoredBookings();
-        found = all.find((b) => b.status === "confirmed");
+        found = all.find((b) => b.status === "confirmed" || b.status === "pending");
         if (found) setBookingCode(found.bookingCode);
       }
       if (active) {
@@ -80,7 +80,7 @@ function MyBookingPage() {
       if (bookingCode) {
         getBookingByCode(bookingCode).then(setBooking);
       } else {
-        getStoredBookings().then((all) => setBooking(all.find((b) => b.status === "confirmed")));
+        getStoredBookings().then((all) => setBooking(all.find((b) => b.status === "confirmed" || b.status === "pending")));
       }
     };
     window.addEventListener("northscape_booking_updated", handleUpdate);
@@ -165,20 +165,43 @@ function MyBookingPage() {
             className="rounded-3xl border border-border bg-card overflow-hidden shadow-soft"
           >
             {/* Status Banner */}
-            <div className="bg-emerald-600 text-white p-4 sm:p-6 flex flex-wrap items-center justify-between gap-4">
+            <div className={`p-4 sm:p-6 flex flex-wrap items-center justify-between gap-4 text-white ${
+              booking.paymentStatus === "confirmed" ? "bg-emerald-600" : booking.paymentStatus === "rejected" ? "bg-destructive" : "bg-amber-500"
+            }`}>
               <div className="flex items-center gap-3">
                 <div className="size-10 rounded-full bg-white/20 grid place-items-center shrink-0">
                   <Check className="size-6 text-white" />
                 </div>
                 <div>
-                  <div className="text-xs uppercase tracking-widest opacity-90 font-semibold">Booking Confirmed</div>
+                  <div className="text-xs uppercase tracking-widest opacity-90 font-semibold">
+                    {booking.paymentStatus === "confirmed"
+                      ? "Booking Confirmed"
+                      : booking.paymentStatus === "rejected"
+                      ? "Payment Not Verified"
+                      : "Pending Payment Verification"}
+                  </div>
                   <div className="font-display text-xl font-bold">Code: {booking.bookingCode}</div>
                 </div>
               </div>
               <span className="rounded-full bg-white/20 px-3.5 py-1 text-xs font-semibold backdrop-blur">
-                🟢 Room Reserved & Locked
+                {booking.paymentStatus === "confirmed"
+                  ? "🟢 Room Reserved & Locked"
+                  : booking.paymentStatus === "rejected"
+                  ? "🔴 Please Contact Us"
+                  : "🟡 Awaiting Verification"}
               </span>
             </div>
+
+            {booking.paymentStatus === "pending_verification" && (
+              <div className="bg-amber-500/10 border-b border-amber-500/30 px-6 py-4 text-sm text-amber-700 dark:text-amber-400">
+                We've received your payment reference and are verifying it — this usually takes a few hours. You'll be able to check back here anytime with your booking code.
+              </div>
+            )}
+            {booking.paymentStatus === "rejected" && (
+              <div className="bg-destructive/10 border-b border-destructive/30 px-6 py-4 text-sm text-destructive">
+                We couldn't verify the payment reference you submitted. Please contact us on WhatsApp so we can help resolve this.
+              </div>
+            )}
 
             <div className="p-6 md:p-10 space-y-8">
               {/* Room Card Preview */}
@@ -225,6 +248,18 @@ function MyBookingPage() {
                       <span>Total Amount</span>
                       <span className="text-accent">{booking.totalRWF.toLocaleString()} RWF (~${booking.totalUSD} USD)</span>
                     </div>
+                    {booking.paymentMethod && (
+                      <div className="flex justify-between pt-2 border-t border-border/60">
+                        <span className="text-muted-foreground">Paid via</span>
+                        <span className="font-medium">{booking.paymentMethod === "momo" ? "MTN MoMo" : "Airtel Money"}</span>
+                      </div>
+                    )}
+                    {booking.paymentReference && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Reference</span>
+                        <span className="font-mono text-xs font-medium">{booking.paymentReference}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

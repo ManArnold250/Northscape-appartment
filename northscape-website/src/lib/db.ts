@@ -15,6 +15,9 @@ export type BookingRecord = {
   totalUSD: number;
   status: "confirmed" | "pending" | "checked_out" | "cancelled";
   specialRequests?: string;
+  paymentMethod?: "momo" | "airtel";
+  paymentReference?: string;
+  paymentStatus: "unpaid" | "pending_verification" | "confirmed" | "rejected";
   createdAt: string;
 };
 
@@ -86,8 +89,8 @@ export async function createBooking(data: Omit<BookingRecord, "id" | "bookingCod
     const connection = await getMySQLConnection();
     if (connection) {
       await connection.execute(
-        `INSERT INTO bookings (booking_code, room_slug, guest_name, guest_email, guest_phone, check_in, check_out, guests_count, total_rwf, total_usd, status, special_requests)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO bookings (booking_code, room_slug, guest_name, guest_email, guest_phone, check_in, check_out, guests_count, total_rwf, total_usd, status, special_requests, payment_method, payment_reference, payment_status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           code,
           data.roomSlug,
@@ -101,6 +104,9 @@ export async function createBooking(data: Omit<BookingRecord, "id" | "bookingCod
           data.totalUSD,
           data.status,
           data.specialRequests || "",
+          data.paymentMethod || null,
+          data.paymentReference || null,
+          data.paymentStatus || "unpaid",
         ]
       );
 
@@ -154,6 +160,9 @@ export async function getAllBookings(): Promise<BookingRecord[]> {
           totalUSD: Number(r.total_usd),
           status: r.status,
           specialRequests: r.special_requests,
+          paymentMethod: r.payment_method || undefined,
+          paymentReference: r.payment_reference || undefined,
+          paymentStatus: r.payment_status || "unpaid",
           createdAt: String(r.created_at),
         }));
       }
@@ -188,6 +197,9 @@ export async function getBookingByCodeDb(bookingCode: string): Promise<BookingRe
           totalUSD: Number(r.total_usd),
           status: r.status,
           specialRequests: r.special_requests,
+          paymentMethod: r.payment_method || undefined,
+          paymentReference: r.payment_reference || undefined,
+          paymentStatus: r.payment_status || "unpaid",
           createdAt: String(r.created_at),
         };
       }
@@ -227,6 +239,62 @@ export async function cancelBookingByCode(bookingCode: string): Promise<boolean>
 
   const idx = memoryBookings.findIndex((b) => b.bookingCode === bookingCode);
   if (idx === -1) return false;
+  memoryBookings[idx].status = "cancelled";
+  const slug = memoryBookings[idx].roomSlug;
+  memoryRooms = memoryRooms.map((r) => (r.slug === slug ? { ...r, isBooked: false, availableFrom: undefined } : r));
+  return true;
+}
+
+export async function confirmPayment(bookingCode: string): Promise<boolean> {
+  try {
+    const connection = await getMySQLConnection();
+    if (connection) {
+      const [result] = await connection.execute(
+        "UPDATE bookings SET payment_status = 'confirmed', status = 'confirmed' WHERE booking_code = ?",
+        [bookingCode]
+      );
+      await connection.end();
+      return result.affectedRows > 0;
+    }
+  } catch (_e) {
+    // Fallback
+  }
+
+  const idx = memoryBookings.findIndex((b) => b.bookingCode === bookingCode);
+  if (idx === -1) return false;
+  memoryBookings[idx].paymentStatus = "confirmed";
+  memoryBookings[idx].status = "confirmed";
+  return true;
+}
+
+export async function rejectPayment(bookingCode: string): Promise<boolean> {
+  try {
+    const connection = await getMySQLConnection();
+    if (connection) {
+      const [rows] = await connection.execute(
+        "SELECT room_slug FROM bookings WHERE booking_code = ?",
+        [bookingCode]
+      );
+      const [result] = await connection.execute(
+        "UPDATE bookings SET payment_status = 'rejected', status = 'cancelled' WHERE booking_code = ?",
+        [bookingCode]
+      );
+      if (rows && rows.length > 0) {
+        await connection.execute(
+          "UPDATE rooms SET status = 'available', available_from = NULL WHERE slug = ?",
+          [rows[0].room_slug]
+        );
+      }
+      await connection.end();
+      return result.affectedRows > 0;
+    }
+  } catch (_e) {
+    // Fallback
+  }
+
+  const idx = memoryBookings.findIndex((b) => b.bookingCode === bookingCode);
+  if (idx === -1) return false;
+  memoryBookings[idx].paymentStatus = "rejected";
   memoryBookings[idx].status = "cancelled";
   const slug = memoryBookings[idx].roomSlug;
   memoryRooms = memoryRooms.map((r) => (r.slug === slug ? { ...r, isBooked: false, availableFrom: undefined } : r));

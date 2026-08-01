@@ -1,9 +1,6 @@
 -- NorthScape Apartment XAMPP MySQL Database Schema
 -- Database Name: northscape_db
 
-CREATE DATABASE IF NOT EXISTS `northscape_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `northscape_db`;
-
 -- 1. Rooms Table
 CREATE TABLE IF NOT EXISTS `rooms` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,

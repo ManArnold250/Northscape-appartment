@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Calendar, Users, ArrowRight, ShieldCheck, Check } from "lucide-react";
+import { Calendar, Users, ArrowRight, ArrowLeft, ShieldCheck, Check, Copy, Smartphone } from "lucide-react";
 import { getRoomsWithLiveStatus, getInitialRooms, saveBooking } from "@/lib/bookingStore";
 import { img } from "@/lib/images";
 import { SectionTitle } from "@/components/site/SectionTitle";
+import { PAYMENT_METHODS, PAYMENT_NUMBER_DISPLAY, type PaymentMethod } from "@/lib/paymentConfig";
 
 import { getStoredUser } from "@/lib/authStore";
 
@@ -74,6 +75,12 @@ function BookingPage() {
   const [specialRequests, setSpecialRequests] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [step, setStep] = useState<"details" | "payment">("details");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("momo");
+  const [paymentReference, setPaymentReference] = useState("");
+  const [referenceError, setReferenceError] = useState("");
+  const [copied, setCopied] = useState(false);
+
   const nights = useMemo(() => {
     try {
       const d = (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86400000;
@@ -112,6 +119,18 @@ function BookingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (step === "details") {
+      setStep("payment");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    if (!paymentReference.trim()) {
+      setReferenceError("Enter the transaction ID/reference from the SMS you received");
+      return;
+    }
+    setReferenceError("");
     setIsSubmitting(true);
 
     try {
@@ -127,12 +146,20 @@ function BookingPage() {
         totalRWF,
         totalUSD,
         specialRequests,
+        paymentMethod,
+        paymentReference: paymentReference.trim(),
       });
 
       window.location.href = `/my-booking?code=${record.bookingCode}`;
     } catch (_e) {
       setIsSubmitting(false);
     }
+  };
+
+  const copyNumber = () => {
+    navigator.clipboard?.writeText(PAYMENT_NUMBER_DISPLAY.replace(/\s/g, ""));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const roomImage = room?.images?.[0] || img.living[0];
@@ -156,6 +183,8 @@ function BookingPage() {
           onSubmit={handleSubmit}
           className="lg:col-span-2 rounded-3xl border border-border bg-card p-8 shadow-soft space-y-8"
         >
+          {step === "details" && (
+          <>
           <div>
             <h3 className="font-display text-2xl">Guest Information</h3>
             <div className="mt-6 grid gap-5 md:grid-cols-2">
@@ -301,13 +330,103 @@ function BookingPage() {
               </label>
             </div>
           </div>
+          </>
+          )}
+
+          {step === "payment" && (
+          <div className="space-y-6">
+            <button
+              type="button"
+              onClick={() => setStep("details")}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="size-3.5" /> Back to details
+            </button>
+
+            <div>
+              <h3 className="font-display text-2xl">Choose Payment Method</h3>
+              <p className="text-sm text-muted-foreground mt-1">Pay via Mobile Money — your reservation is held while we verify your payment.</p>
+
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                {(Object.keys(PAYMENT_METHODS) as PaymentMethod[]).map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setPaymentMethod(key)}
+                    className={`flex items-center gap-3 rounded-2xl border-2 p-4 text-left transition-all ${
+                      paymentMethod === key ? "border-accent bg-accent/10" : "border-border bg-background hover:border-accent/40"
+                    }`}
+                  >
+                    <Smartphone className={`size-5 shrink-0 ${paymentMethod === key ? "text-accent" : "text-muted-foreground"}`} />
+                    <span className="font-semibold text-sm">{PAYMENT_METHODS[key].label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-secondary/30 p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Send exactly</div>
+                  <div className="font-display text-2xl font-bold text-accent">{totalRWF.toLocaleString()} RWF</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">To this number</div>
+                  <button
+                    type="button"
+                    onClick={copyNumber}
+                    className="inline-flex items-center gap-1.5 font-display text-lg font-bold hover:text-accent transition-colors"
+                  >
+                    {PAYMENT_NUMBER_DISPLAY}
+                    <Copy className="size-3.5" />
+                  </button>
+                  {copied && <div className="text-[11px] text-emerald-600 font-medium">Copied!</div>}
+                </div>
+              </div>
+
+              <ol className="space-y-2 text-sm">
+                {PAYMENT_METHODS[paymentMethod].steps.map((s, i) => (
+                  <li key={i} className="flex gap-2.5">
+                    <span className="shrink-0 size-5 rounded-full bg-accent/15 text-accent text-[11px] font-bold grid place-items-center mt-0.5">{i + 1}</span>
+                    <span className="text-secondary-foreground">{s}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <label className="text-sm block">
+              <div className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Transaction ID / Reference</div>
+              <input
+                type="text"
+                required
+                value={paymentReference}
+                onChange={(e) => {
+                  setPaymentReference(e.target.value);
+                  if (referenceError) setReferenceError("");
+                }}
+                placeholder="e.g. MP240712.1830.A12345"
+                className="mt-1.5 w-full rounded-xl bg-background border border-border px-4 py-2.5 focus:ring-focus min-h-[44px] font-mono"
+              />
+              {referenceError && <div className="mt-1.5 text-xs text-destructive font-medium">{referenceError}</div>}
+              <p className="mt-1.5 text-xs text-muted-foreground">This is the code from the confirmation SMS you receive after sending payment.</p>
+            </label>
+
+            <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-xs text-amber-700 dark:text-amber-400">
+              Your booking will show as <strong>Pending Verification</strong> until our team confirms your payment was received — usually within a few hours.
+            </div>
+          </div>
+          )}
 
           <button
             type="submit"
             disabled={isSubmitting}
             className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground hover:opacity-90 shadow-soft transition-all min-h-[48px]"
           >
-            {isSubmitting ? "Processing Reservation..." : "Confirm & Save Reservation"}
+            {isSubmitting
+              ? "Submitting..."
+              : step === "details"
+              ? "Continue to Payment"
+              : "I've Sent the Payment — Submit"}
             <ArrowRight className="size-4" />
           </button>
         </motion.form>
@@ -359,7 +478,7 @@ function BookingPage() {
 
               <div className="pt-4 border-t border-border/60 text-xs text-muted-foreground space-y-1.5">
                 <div className="flex items-center gap-1.5"><ShieldCheck className="size-4 text-emerald-600 shrink-0" /> Free cancellation anytime before check-in</div>
-                <div className="flex items-center gap-1.5"><Check className="size-4 text-accent shrink-0" /> Instant reservation & host WhatsApp coordination</div>
+                <div className="flex items-center gap-1.5"><Check className="size-4 text-accent shrink-0" /> Pay via MoMo or Airtel — confirmed after verification</div>
               </div>
             </div>
           </div>
